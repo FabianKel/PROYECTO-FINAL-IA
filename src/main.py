@@ -63,26 +63,26 @@ def classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder):
         svm_pred = svm_model.predict(features_df)[0]
         knn_pred = knn_model.predict(features_df)[0]
         nn_pred = nn_model.predict(features_df)[0]
-        
+
+        # Convertir índices a nombres de géneros  como string
+        svm_genre = str(label_encoder.inverse_transform([svm_pred])[0])
+        knn_genre = str(label_encoder.inverse_transform([knn_pred])[0])
+        nn_genre = str(label_encoder.inverse_transform([nn_pred])[0])
+
         # Obtener probabilidades (confianza de predicción)
         svm_proba = np.max(svm_model.predict_proba(features_df)[0]) * 100
         knn_proba = np.max(knn_model.predict_proba(features_df)[0]) * 100
         nn_proba = np.max(nn_model.predict_proba(features_df)[0]) * 100
-        
-        # Convertir índices a nombres de géneros
-        svm_genre = label_encoder.inverse_transform([svm_pred])[0]
-        knn_genre = label_encoder.inverse_transform([knn_pred])[0]
-        nn_genre = label_encoder.inverse_transform([nn_pred])[0]
-        
+
         # Resultados
         results = {
             'SVM': {'genre': svm_genre, 'confidence': svm_proba},
             'KNN': {'genre': knn_genre, 'confidence': knn_proba},
             'Red Neuronal': {'genre': nn_genre, 'confidence': nn_proba}
         }
-        
+
         return results
-    
+
     except Exception as e:
         print(f"Error al clasificar la canción: {e}")
         return None
@@ -91,32 +91,32 @@ def print_results(results, audio_name):
     """Imprime los resultados de clasificación de forma ordenada."""
     if not results:
         return
-    
+
     print("\n" + "=" * 50)
     print(f"Resultados de clasificación para: {audio_name}")
     print("=" * 50)
-    
+
     # Ordenar modelos por confianza
     sorted_models = sorted(results.items(), key=lambda x: x[1]['confidence'], reverse=True)
-    
+
     for i, (model_name, data) in enumerate(sorted_models):
         print(f"{i+1}. {model_name}: {data['genre']} (Confianza: {data['confidence']:.2f}%)")
-    
+
     # Verificar si hay consenso entre los modelos
-    genres = [data['genre'] for _, data in results.items()]
+    genres = [str(data['genre']) for _, data in results.items()]
     if len(set(genres)) == 1:
         print("\nTodos los modelos coinciden: la canción es del género", genres[0])
     else:
         # Determinar el género por votación ponderada por confianza
         genre_votes = {}
         for model, data in results.items():
-            genre = data['genre']
+            genre = str(data['genre'])  # Asegura que sea string
             confidence = data['confidence']
-            
+
             if genre not in genre_votes:
                 genre_votes[genre] = 0
             genre_votes[genre] += confidence
-        
+
         # Obtener el género con mayor puntaje
         best_genre = max(genre_votes.items(), key=lambda x: x[1])
         print(f"\nGénero con mayor puntaje acumulado: {best_genre[0]} ({best_genre[1]:.2f} puntos)")
