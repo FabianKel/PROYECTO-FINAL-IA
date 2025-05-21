@@ -95,6 +95,7 @@ def print_results(results, audio_name):
     print(f"Resultados de clasificación para: {audio_name}")
     print("=" * 50)
 
+    # Mostrar los 3 géneros principales por modelo
     for model_name, data in results.items():
         print(f"\n{model_name}:")
         for i, (genre, conf) in enumerate(data['top3'], 1):
@@ -104,6 +105,23 @@ def print_results(results, audio_name):
             else:
                 genre_name = str(genre)
             print(f"  {i}. {genre_name} (Confianza: {conf:.2f}%)")
+
+    # Encontrar el género con mayor confianza entre todos los modelos
+    best_genre = None
+    best_conf = -1
+    for data in results.values():
+        genre = data['genre']
+        conf = data['confidence']
+        # Convertir a nombre si es necesario
+        if isinstance(genre, (int, np.integer)):
+            genre_name = GENRE_MAP.get(genre, str(genre))
+        else:
+            genre_name = str(genre)
+        if conf > best_conf:
+            best_conf = conf
+            best_genre = genre_name
+
+    print(f"\n>>> El género más probable según los modelos es: **{best_genre}** (Confianza: {best_conf:.2f}%) <<<")
 
 def menu():
     """Muestra el menú principal de la aplicación."""
