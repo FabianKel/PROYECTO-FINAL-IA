@@ -5,6 +5,8 @@ import pandas as pd
 import joblib
 from pathlib import Path
 from sklearn.preprocessing import LabelEncoder
+import matplotlib.pyplot as plt
+import librosa
 
 # Importamos el módulo para extraer características de audio
 from feature_extraction import extract_features
@@ -43,16 +45,20 @@ def classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder):
     """
     print(f"\nProcesando archivo: {audio_path}")
     try:
-        # Extraer características del audio
         features = extract_features(audio_path)
-        
         if features is None or len(features) == 0:
             print("No se pudieron extraer características del audio.")
             return None
-        
-        # Convertir a DataFrame para mantener consistencia con el entrenamiento
+
         features_df = pd.DataFrame([features])
-        
+
+        # Asegura que las columnas coincidan con las usadas en el entrenamiento
+        model_features = svm_model.feature_names_in_
+        for col in model_features:
+            if col not in features_df.columns:
+                features_df[col] = 0  # Rellena faltantes con 0
+        features_df = features_df[model_features]  # Ordena columnas
+
         # Predicciones
         svm_pred = svm_model.predict(features_df)[0]
         knn_pred = knn_model.predict(features_df)[0]
@@ -183,6 +189,20 @@ def input_folder_path():
         print(f"Carpeta válida con {len(wav_files)} archivos WAV: {folder_path}")    
         return folder_path
 
+def show_audio_histogram(audio_path):
+    """Muestra el histograma de amplitud del archivo de audio."""
+    try:
+        y, sr = librosa.load(audio_path, sr=None)
+        plt.figure(figsize=(8, 4))
+        plt.hist(y, bins=100, color='skyblue', edgecolor='black')
+        plt.title('Histograma de amplitud del audio')
+        plt.xlabel('Amplitud')
+        plt.ylabel('Frecuencia')
+        plt.tight_layout()
+        plt.show()
+    except Exception as e:
+        print(f"No se pudo mostrar el histograma: {e}")
+
 def main():
     """Función principal del programa."""
     # Cargar los modelos
@@ -197,6 +217,8 @@ def main():
             if audio_path:
                 results = classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder)
                 print_results(results, os.path.basename(audio_path))
+                # Mostrar histograma tras la clasificación
+                show_audio_histogram(audio_path)
                 
         elif option == 2:  # Clasificar todas las canciones en una carpeta
             folder_path = input_folder_path()
