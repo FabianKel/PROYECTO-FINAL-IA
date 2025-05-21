@@ -37,7 +37,7 @@ def load_models():
         label_encoder = joblib.load(MODELS_PATH / 'label_encoder.pkl')
         
         print("Modelos cargados exitosamente.")
-        print("Clases del LabelEncoder:", label_encoder.classes_) 
+        print("Clases del LabelEncoder:", label_encoder.classes_, type(label_encoder.classes_[0])) 
         return svm_model, knn_model, nn_model, label_encoder
     except Exception as e:
         print(f"Error al cargar los modelos: {e}")
@@ -45,17 +45,7 @@ def load_models():
 
 def classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder):
     """
-    Clasifica una canción utilizando los tres modelos.
-    
-    Args:
-        audio_path: Ruta al archivo de audio WAV
-        svm_model: Modelo SVM cargado
-        knn_model: Modelo KNN cargado
-        nn_model: Modelo de Red Neuronal cargado
-        label_encoder: Codificador de etiquetas
-        
-    Returns:
-        Diccionario con los resultados de cada modelo
+    Clasifica una canción utilizando los tres modelos y muestra los 3 géneros más probables.
     """
     print(f"\nProcesando archivo: {audio_path}")
     try:
@@ -65,37 +55,30 @@ def classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder):
             return None
 
         features_df = pd.DataFrame([features])
-
-        # Asegura que las columnas coincidan con las usadas en el entrenamiento
         model_features = svm_model.feature_names_in_
         for col in model_features:
             if col not in features_df.columns:
-                features_df[col] = 0  # Rellena faltantes con 0
-        features_df = features_df[model_features]  # Ordena columnas
+                features_df[col] = 0
+        features_df = features_df[model_features]
 
-        # Predicciones
-        svm_pred = svm_model.predict(features_df)[0]
-        knn_pred = knn_model.predict(features_df)[0]
-        nn_pred = nn_model.predict(features_df)[0]
+        results = {}
 
-        print("Predicciones crudas:", svm_pred, knn_pred, nn_pred)  
-
-        # Convertir índices a nombres de géneros  como string
-        svm_genre = GENRE_MAP.get(svm_pred, str(svm_pred))
-        knn_genre = GENRE_MAP.get(knn_pred, str(knn_pred))
-        nn_genre = GENRE_MAP.get(nn_pred, str(nn_pred))
-
-        # Obtener probabilidades (confianza de predicción)
-        svm_proba = np.max(svm_model.predict_proba(features_df)[0]) * 100
-        knn_proba = np.max(knn_model.predict_proba(features_df)[0]) * 100
-        nn_proba = np.max(nn_model.predict_proba(features_df)[0]) * 100
-
-        # Resultados
-        results = {
-            'SVM': {'genre': svm_genre, 'confidence': svm_proba},
-            'KNN': {'genre': knn_genre, 'confidence': knn_proba},
-            'Red Neuronal': {'genre': nn_genre, 'confidence': nn_proba}
-        }
+        for model_name, model in zip(
+            ['SVM', 'KNN', 'Red Neuronal'],
+            [svm_model, knn_model, nn_model]
+        ):
+            proba = model.predict_proba(features_df)[0]
+            top3_idx = np.argsort(proba)[::-1][:3]
+            try:
+                top3_genres = label_encoder.inverse_transform(top3_idx)
+            except:
+                top3_genres = [GENRE_MAP.get(idx, str(idx)) for idx in top3_idx]
+            top3_conf = proba[top3_idx] * 100
+            results[model_name] = {
+                'top3': list(zip(top3_genres, top3_conf)),
+                'genre': top3_genres[0],
+                'confidence': top3_conf[0]
+            }
 
         return results
 
@@ -112,30 +95,15 @@ def print_results(results, audio_name):
     print(f"Resultados de clasificación para: {audio_name}")
     print("=" * 50)
 
-    # Ordenar modelos por confianza
-    sorted_models = sorted(results.items(), key=lambda x: x[1]['confidence'], reverse=True)
-
-    for i, (model_name, data) in enumerate(sorted_models):
-        print(f"{i+1}. {model_name}: {data['genre']} (Confianza: {data['confidence']:.2f}%)")
-
-    # Verificar si hay consenso entre los modelos
-    genres = [str(data['genre']) for _, data in results.items()]
-    if len(set(genres)) == 1:
-        print("\nTodos los modelos coinciden: la canción es del género", genres[0])
-    else:
-        # Determinar el género por votación ponderada por confianza
-        genre_votes = {}
-        for model, data in results.items():
-            genre = str(data['genre'])  # Asegura que sea string
-            confidence = data['confidence']
-
-            if genre not in genre_votes:
-                genre_votes[genre] = 0
-            genre_votes[genre] += confidence
-
-        # Obtener el género con mayor puntaje
-        best_genre = max(genre_votes.items(), key=lambda x: x[1])
-        print(f"\nGénero con mayor puntaje acumulado: {best_genre[0]} ({best_genre[1]:.2f} puntos)")
+    for model_name, data in results.items():
+        print(f"\n{model_name}:")
+        for i, (genre, conf) in enumerate(data['top3'], 1):
+            # Usar GENRE_MAP para mostrar el nombre del género si es número
+            if isinstance(genre, (int, np.integer)):
+                genre_name = GENRE_MAP.get(genre, str(genre))
+            else:
+                genre_name = str(genre)
+            print(f"  {i}. {genre_name} (Confianza: {conf:.2f}%)")
 
 def menu():
     """Muestra el menú principal de la aplicación."""
