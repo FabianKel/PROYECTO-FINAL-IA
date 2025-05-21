@@ -15,6 +15,19 @@ from feature_extraction import extract_features
 MODELS_PATH = Path('../src/models/')
 DATA_PATH = Path('../data/processed/')
 
+GENRE_MAP = {
+    0: "blues",
+    1: "classical",
+    2: "country",
+    3: "disco",
+    4: "hiphop",
+    5: "jazz",
+    6: "metal",
+    7: "pop",
+    8: "reggae",
+    9: "rock"
+}
+
 def load_models():
     """Carga los modelos entrenados desde el directorio de modelos."""
     try:
@@ -24,6 +37,7 @@ def load_models():
         label_encoder = joblib.load(MODELS_PATH / 'label_encoder.pkl')
         
         print("Modelos cargados exitosamente.")
+        print("Clases del LabelEncoder:", label_encoder.classes_) 
         return svm_model, knn_model, nn_model, label_encoder
     except Exception as e:
         print(f"Error al cargar los modelos: {e}")
@@ -64,10 +78,12 @@ def classify_song(audio_path, svm_model, knn_model, nn_model, label_encoder):
         knn_pred = knn_model.predict(features_df)[0]
         nn_pred = nn_model.predict(features_df)[0]
 
+        print("Predicciones crudas:", svm_pred, knn_pred, nn_pred)  
+
         # Convertir índices a nombres de géneros  como string
-        svm_genre = str(label_encoder.inverse_transform([svm_pred])[0])
-        knn_genre = str(label_encoder.inverse_transform([knn_pred])[0])
-        nn_genre = str(label_encoder.inverse_transform([nn_pred])[0])
+        svm_genre = GENRE_MAP.get(svm_pred, str(svm_pred))
+        knn_genre = GENRE_MAP.get(knn_pred, str(knn_pred))
+        nn_genre = GENRE_MAP.get(nn_pred, str(nn_pred))
 
         # Obtener probabilidades (confianza de predicción)
         svm_proba = np.max(svm_model.predict_proba(features_df)[0]) * 100
