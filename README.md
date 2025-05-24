@@ -1,6 +1,16 @@
 # Proyecto Final - Inteligencia Artificial
 # Clasificador de canciones según género
 
+## Dependencias y Archivos Necesarios
+Para ejecutar las extracciones y transformaciones se requiere lo siguiente:
+``` bash
+pip install -r requirements.txt
+```
+
+Los archivos .wav y .png se encuentran en el siguiente enlace:
+https://drive.google.com/drive/folders/1l5NCGYbP1inVNNN6uhhtcbPwL___aPIS?usp=sharing
+
+Reemplazar las carpetas `./data/music` y `./data/spectrograms` por las descargadas del drive.
 
 ## Features Utilizadas
 | Columna                      | Descripción                        |
