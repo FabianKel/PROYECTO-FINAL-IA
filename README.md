@@ -1,6 +1,8 @@
 # Proyecto Final - Inteligencia Artificial
 # Clasificador de canciones según género
 
+
+## Features Utilizadas
 | Columna                      | Descripción                        |
 | ---------------------------- |--------------------------------------------- |
 | `filename`               | Nombre del archivo de audio correspondiente a la canción.|
@@ -25,3 +27,40 @@
 | `mfcc1_mean` a `mfcc20_mean` | Promedios de los 20 coeficientes cepstrales en las frecuencias de Mel (MFCC), que representan la envolvente del espectro de audio y son útiles para capturar características tímbricas.|
 | `mfcc1_var` a `mfcc20_var`   | Varianzas de los coeficientes MFCC correspondientes.|
 | `label`                      | Género musical de la canción (categoría objetivo).|
+
+## 
+``` bash
+.
+├───app  -------------------------------->  Aplicación Frontend
+├───data  ------------------------------->  Todos los datos utilizados en el proyecto
+│   ├───mapping  ------------------------>  Mapeo de los géneros musicales                           
+│   ├───music  -------------------------->  Archivos .wav organizado por géneros 
+│   ├───processed
+│   │   ├───extracted_data3.csv     ----->  12 Features más valiosas de extracted_data3.csv
+│   │   ├───extracted_data30.csv    ----->  12 Features más valiosas de extracted_data30.csv
+│   │   ├───preprocessed_data3.csv  ----->  Features Escaladas y Géneros Codificados de features_3_sec.csv
+│   │   └───preprocessed_data30.csv ----->  Features Escaladas y Géneros Codificados de features_30_sec.csv
+│   ├───raw
+│   │   ├───extracted_data3.csv     ----->  Features "crudas" extraídas de extract-from-0.ipynb
+│   │   ├───extracted_data30.csv    ----->  Features "crudas" extraídas de extract-from-0.ipynb
+│   │   ├───preprocessed_data3.csv  ----->  Features originales de Kaggle
+│   │   └───preprocessed_data30.csv ----->  Features originales de Kaggle
+│   ├───samples      -------------------->  Música de Prueba
+│   └───spectrograms -------------------->  Sectrogramas extraídos de extract-from-0.ipynb
+├───notebooks
+│   ├───data_exploration.ipynb ---------->  Exploración de Datos
+│   ├───extract-from-0.ipynb.ipynb ------>  Extracción de features de los archivos .wav y creación de los espectrogramas
+│   ├───model_training.ipynb   ---------->  Entrenamiento de los modelos de clasificación
+│   └───preprocessing.ipynb    ---------->  Preprocesamiento de los datos (Creación archivos .CSV de preprocessed y extracted data)
+└───src
+    ├───models       -------------------->  Modelos de clasificación
+    │   ├───new_models  ----------------->  Modelos entrenados con los datos de extract-from-0.ipynb
+    │   │   ├───knn.pkl  ---------------->  K-Nearest-Neighbors
+    │   │   ├───neural_netword.pkl  ----->  Red Neuronal
+    │   │   └───svm.pkl  ---------------->  Support  
+    │   ├───knn.pkl  -------------------->  K-Nearest-Neighbors
+    │   ├───neural_netword.pkl  --------->  Red Neuronal
+    │   └───svm.pkl  -------------------->  Support Vector Machine
+    ├───musica prueba  ------------------>  Archivos .wav de Prueba para el programa de Python
+    └───__pycache__
+```
