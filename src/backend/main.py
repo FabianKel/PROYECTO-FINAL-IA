@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 import os
 import librosa
@@ -15,7 +15,6 @@ import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
 
 origins = ["*"]
 
@@ -59,85 +58,93 @@ async def get_default_files():
     """Return list of default .wav files in musica directory."""
     try:
         files = [f.name for f in MUSIC_DIR.glob("*.wav") if f.is_file()]
-        print(files)
+        logging.info(f"Found default files: {files}")
         return {"files": files}
     except Exception as e:
+        logging.error(f"Error getting default files: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Configurar logging básico
 logging.basicConfig(level=logging.INFO)
 
-
 @app.post("/predict")
-async def predict(file: UploadFile = File(None), default_file: str = None):
+async def predict(
+    file: UploadFile = File(None), 
+    default_file: str = Form(None)
+):
     """Process .wav file in 3-second segments and return aggregated predictions and spectrogram."""
     try:
         logging.info("Request received")
+        logging.info(f"File: {file.filename if file else 'None'}")
+        logging.info(f"Default file: {default_file}")
 
         # Determinar archivo de entrada
-        if file:
+        if file and file.filename:
             logging.info(f"Received uploaded file: {file.filename}")
             content = await file.read()
             temp_path = OUTPUT_DIR / file.filename
             with open(temp_path, "wb") as f:
                 f.write(content)
             audio_path = temp_path
+            
         elif default_file:
             audio_path = MUSIC_DIR / default_file
             logging.info(f"Using default file: {audio_path}")
             if not audio_path.exists():
                 logging.error(f"Default file not found: {audio_path}")
-                raise HTTPException(status_code=404, detail="Default file not found")
+                raise HTTPException(status_code=404, detail=f"Default file not found: {default_file}")
+                
         else:
             logging.warning("No file or default_file provided")
             raise HTTPException(status_code=400, detail="No file provided")
 
+        logging.info(f"Processing audio file: {audio_path}")
+
         # Extraer características
         df_features = extract_features(str(audio_path))
-
-        logging.info(f"DataFrame shape antes: {df_features.shape}")
-
+        logging.info(f"DataFrame shape: {df_features.shape}")
 
         # Generar espectrograma
-        logging.info("Generando spectograma...")
+        logging.info("Generando espectrograma...")
         spectrogram_path = generate_spectrogram(str(audio_path), OUTPUT_DIR)
         logging.info(f"Generated spectrogram: {spectrogram_path}")
 
         predictions = {}
         for model_file in MODEL_FILES:
             logging.info(f"Loading model: {model_file}")
-            with open(model_file, "rb") as f:
-                model = joblib.load(f)
-            
-            logging.info("modelo cargado exitosamente")
+            try:
+                with open(model_file, "rb") as f:
+                    model = joblib.load(f)
+                
+                logging.info("Modelo cargado exitosamente")
 
-            logging.info(f"DataFrame shape después: {df_features.shape}")
+                segment_probs = []
+                for _, row in df_features.iterrows():
+                    features_array = row.values.reshape(1, -1)
+                    probs = model.predict_proba(features_array)[0]
+                    segment_probs.append(probs)
+                    
+                avg_probs = np.mean(segment_probs, axis=0)
+                logging.info(f"Promedio de Probabilidades: {avg_probs}")
 
-            segment_probs = []
-            for _, row in df_features.iterrows():
-                features_array = row.values.reshape(1, -1)
-                probs = model.predict_proba(features_array)[0]
-                segment_probs.append(probs)
-            avg_probs = np.mean(segment_probs, axis=0)
-            logging.info(f"Promedio de Probabilidades: {avg_probs}")
+                genres = model.classes_ if hasattr(model, 'classes_') else [f"Genre{i}" for i in range(len(avg_probs))]
+                logging.info(f"Géneros: {genres}")
+                
+                predictions[model_file.stem] = {
+                    int(genre): float(prob) for genre, prob in zip(genres, avg_probs)
+                }
+                
+            except Exception as model_error:
+                logging.error(f"Error loading model {model_file}: {model_error}")
+                continue
 
-            genres = model.classes_ if hasattr(model, 'classes_') else [f"Genre{i}" for i in range(len(avg_probs))]
-            logging.info(f"Géneros: {genres}")
-            predictions[model_file.stem] = {
-                int(genre): float(prob) for genre, prob in zip(genres, avg_probs)
-            }
-
-
+        if not predictions:
+            raise HTTPException(status_code=500, detail="No models could be loaded successfully")
 
         spectrogram_url = f"/static/{spectrogram_path.name}"
         logging.info("Prediction complete")
 
-        logging.info(f"num_segments: {int(len(df_features))}")
-        print("predictions type: ",type(predictions))
-        print("spectrogram_url type: ",type(spectrogram_url))
-        print(f"num_segments type: {type(int(len(df_features)))}, valor: {int(len(df_features))}")
-
-        return {
+        response_data = {
             "predictions": {
                 model_name: {
                     GENRE_MAP[str(genre)]: float(prob)
@@ -147,8 +154,11 @@ async def predict(file: UploadFile = File(None), default_file: str = None):
             },
             "spectrogram": spectrogram_url,
             "num_segments": int(len(df_features)),
-            "message: ": "Return correcto"
+            "message": "Predicción completada exitosamente"
         }
+        
+        logging.info(f"Returning response: {response_data}")
+        return response_data
 
     except Exception as e:
         logging.exception("Error during prediction")

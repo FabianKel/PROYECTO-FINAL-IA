@@ -6,31 +6,47 @@ export function usePredict() {
   const [spectrogram, setSpectrogram] = useState('');
   const [numSegments, setNumSegments] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e, selectedFile, defaultFile) => {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData();
-    if (selectedFile) {
-      formData.append('file', selectedFile);
-    } else if (defaultFile) {
-      formData.append('default_file', defaultFile);
-    } else {
-      alert('Please select a file');
-      setLoading(false);
-      return;
-    }
+    setError(null);
 
     try {
-      const res = await axios.post('http://localhost:8000/predict', formData);
+      const formData = new FormData();
+      
+      if (selectedFile) {
+        console.log("Procesando archivo subido:", selectedFile.name);
+        formData.append('file', selectedFile);
+      } else if (defaultFile) {
+        console.log("Procesando archivo predeterminado:", defaultFile);
+        formData.append('default_file', defaultFile);
+      } else {
+        throw new Error('Por favor selecciona un archivo');
+      }
+
+      console.log("Enviando petición a /predict...");
+      const res = await axios.post('http://localhost:8000/predict', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log("Respuesta recibida:", res.data);
+      
       setPredictions(res.data.predictions);
       setSpectrogram(res.data.spectrogram);
       setNumSegments(res.data.num_segments);
+      
     } catch (err) {
-      console.error(err);
-      alert('Error processing file');
+      console.error("Error en handleSubmit:", err);
+      const errorMessage = err.response?.data?.detail || err.message || 'Error desconocido';
+      setError(`Error procesando archivo: ${errorMessage}`);
+      alert(`Error procesando archivo: ${errorMessage}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return {
@@ -38,6 +54,7 @@ export function usePredict() {
     spectrogram,
     numSegments,
     loading,
+    error,
     handleSubmit,
   };
 }
