@@ -21,6 +21,7 @@ MUSIC_PATH = Path('./musica prueba/')
 with open('../data/mapping/genre_mapping_30.json', 'r', encoding='utf-8') as f:
     loaded_map = json.load(f)
 GENRE_MAP = {int(k): v for k, v in loaded_map.items()}
+print(GENRE_MAP)
 
 
 
@@ -109,6 +110,7 @@ def main():
             audio_path = input_audio_path()
             if audio_path:
                 results = classify_song(GENRE_MAP,audio_path, svm_model, knn_model, nn_model, label_encoder)
+                print(results)
                 print_results(results, os.path.basename(audio_path), GENRE_MAP)
                 # Mostrar histograma tras la clasificación
                 show_audio_histogram(audio_path)
@@ -117,7 +119,7 @@ def main():
             audio_path = input_audio_path()
             if audio_path:
                 results = classify_song(GENRE_MAP, audio_path, svm_model, knn_model, nn_model,
-                                        label_encoder, duration=30.0, segmentation=True)
+                                        label_encoder, duration=3.0, segmentation=True)
                 if results:
                     for i, res in enumerate(results):
                         print(f"\nSegmento {i + 1}")

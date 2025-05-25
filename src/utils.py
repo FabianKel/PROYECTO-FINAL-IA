@@ -7,9 +7,9 @@ import numpy as np
 def load_models(MODELS_PATH):
     """Carga los modelos entrenados desde el directorio de modelos."""
     try:
-        svm_model = joblib.load(MODELS_PATH / 'svm.pkl')
-        knn_model = joblib.load(MODELS_PATH / 'knn.pkl')
-        nn_model = joblib.load(MODELS_PATH / 'neural_network.pkl')
+        svm_model = joblib.load(MODELS_PATH / 'knn_original_3_preprocessed.pkl')
+        knn_model = joblib.load(MODELS_PATH / 'svm_actual_3_preprocessed.pkl')
+        nn_model = joblib.load(MODELS_PATH / 'knn_actual_3_preprocessed.pkl')
         label_encoder = joblib.load(MODELS_PATH / 'label_encoder.pkl')
         
         print("Modelos cargados exitosamente.")
