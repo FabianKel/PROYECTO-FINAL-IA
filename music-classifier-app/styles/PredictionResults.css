@@ -1,0 +1,412 @@
+
+.prediction-results {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 40px rgba(14, 165, 233, 0.1),
+    0 0 0 1px rgba(56, 189, 248, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+
+
+.prediction-results::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8, #7dd3fc, #0284c7);
+  background-size: 300% 100%;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+.prediction-results__title {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 3rem;
+  line-height: 1.2;
+}
+
+.prediction-results__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  align-items: start;
+}
+
+.prediction-results__card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+  border-radius: 20px;
+  padding: 2rem;
+  border: 2px solid rgba(14, 165, 233, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.prediction-results__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.02), rgba(56, 189, 248, 0.04));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.prediction-results__card:hover::before {
+  opacity: 1;
+}
+
+.prediction-results__card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 25px 50px rgba(14, 165, 233, 0.15),
+    0 0 0 1px rgba(14, 165, 233, 0.2);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+.prediction-results__confidence {
+  position: absolute;
+  top: 0.25rem;
+  right: 1rem;
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  animation: confidencePulse 2s ease-in-out infinite;
+}
+
+@keyframes confidencePulse {
+  0%, 100% { 
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+.prediction-results__card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 1rem;
+  padding-right: 6rem;
+  background: linear-gradient(135deg, #1e293b, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.prediction-results__chart-container {
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.prediction-results__chart-wrapper {
+  height: 280px;
+  position: relative;
+}
+
+.prediction-results__stats {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(56, 189, 248, 0.08));
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(14, 165, 233, 0.15);
+}
+
+.prediction-results__stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.prediction-results__stat-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.prediction-results__stat-item:first-child {
+  padding-top: 0;
+}
+
+.prediction-results__stat-label {
+  font-weight: 500;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.prediction-results__stat-value {
+  font-weight: 700;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 0.95rem;
+}
+
+/* =================================
+   SEGMENT INFO STYLES
+   ================================= */
+
+.segment-info {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.08));
+  border-radius: 16px;
+  border: 2px solid rgba(16, 185, 129, 0.2);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.segment-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #06b6d4, #0ea5e9);
+  background-size: 200% 100%;
+  animation: segmentGradient 2s ease-in-out infinite;
+}
+
+@keyframes segmentGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.segment-info__text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.segment-info__count {
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  animation: countPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes countPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.spectrogram-display {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 40px rgba(100, 116, 139, 0.1),
+    0 0 0 1px rgba(148, 163, 184, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.spectrogram-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(130deg, #bae6fd, #e0f2fe, #7dd3fc, #38bdf8);
+  background-size: 300% 100%;
+  animation: spectrogramGradient 4s ease-in-out infinite;
+}
+
+@keyframes spectrogramGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.spectrogram-display__title {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a7bfe2, #000000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 2rem;
+}
+
+.spectrogram-display__container {
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 2px solid rgba(100, 116, 139, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.spectrogram-display__container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px rgba(100, 116, 139, 0.15);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+.spectrogram-display__image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.spectrogram-display__image:hover {
+  transform: scale(1.02);
+}
+
+.spectrogram-display__overlay {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(71, 85, 105, 0.85));
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.spectrogram-display__container:hover .spectrogram-display__overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =================================
+   SHARED ANIMATIONS
+   ================================= */
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* =================================
+   RESPONSIVE DESIGN
+   ================================= */
+
+@media (max-width: 768px) {
+  .prediction-results,
+  .spectrogram-display {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .segment-info {
+    margin: 1rem;
+    padding: 1rem 1.5rem;
+  }
+  
+  .prediction-results__title,
+  .spectrogram-display__title {
+    font-size: 1.875rem;
+  }
+  
+  .prediction-results__grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .prediction-results__card {
+    padding: 1.5rem;
+  }
+  
+  .prediction-results__confidence {
+    position: static;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  
+  .prediction-results__card-title {
+    padding-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .prediction-results__chart-wrapper {
+    height: 250px;
+  }
+  
+  .segment-info__text {
+    font-size: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .spectrogram-display__image {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prediction-results__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .prediction-results__chart-wrapper {
+    height: 220px;
+  }
+  
+  .prediction-results__title,
+  .spectrogram-display__title {
+    font-size: 1.5rem;
+  }
+}

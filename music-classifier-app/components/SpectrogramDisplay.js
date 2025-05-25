@@ -1,9 +1,22 @@
+import '../styles/PredictionResults.css';
 export default function SpectrogramDisplay({ spectrogram }) {
   if (!spectrogram) return null;
+  
   return (
-    <div className="mb-4">
-      <h2 className="text-xl mb-2">Spectrogram</h2>
-      <img src={spectrogram} alt="Spectrogram" className="max-w-full h-auto" />
+    <div className="spectrogram-display">
+      <h2 className="spectrogram-display__title">
+      Spectrogram
+      </h2>
+      <div className="spectrogram-display__container">
+        <img 
+          src={spectrogram} 
+          alt="Audio Spectrogram Visualization" 
+          className="spectrogram-display__image" 
+        />
+        <div className="spectrogram-display__overlay">
+          Visual representation of audio frequency content over time
+        </div>
+      </div>
     </div>
   );
 }

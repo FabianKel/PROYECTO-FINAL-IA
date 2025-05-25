@@ -13,8 +13,13 @@ export default function Home() {
   const { predictions, spectrogram, numSegments, loading, handleSubmit } = usePredict();
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Song Genre Classifier</h1>
+    <div className="container">
+<img 
+  src="song-genre-classifier.png" 
+  alt="Song Genre Classifier" 
+  style={{ display: 'block', margin: '0 auto', width: '1200px', height: '160px' }}
+/>
+
       <FileSelector
         defaultFiles={defaultFiles}
         selectedFile={selectedFile}
