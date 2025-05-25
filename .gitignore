@@ -1,3 +1,8 @@
 data/music/*/*
 data/spectrograms/*/*
 test
+testing
+.venv
+**/__pycache__/
+**/venv
+src/__pycache__/
