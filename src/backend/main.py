@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles  
 import os
 import librosa
 import numpy as np
@@ -31,6 +32,8 @@ MODEL_DIR = Path("../models")
 MUSIC_DIR = Path("../musica")
 OUTPUT_DIR = Path("static")
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=str(OUTPUT_DIR)), name="static")
 
 # Load model names
 model_names = [
@@ -109,6 +112,11 @@ async def predict(
         spectrogram_path = generate_spectrogram(str(audio_path), OUTPUT_DIR)
         logging.info(f"Generated spectrogram: {spectrogram_path}")
 
+
+        if not spectrogram_path.exists():
+            logging.error(f"Spectrogram not created: {spectrogram_path}")
+            raise HTTPException(status_code=500, detail="Failed to generate spectrogram")
+
         predictions = {}
         for model_file in MODEL_FILES:
             logging.info(f"Loading model: {model_file}")
@@ -141,8 +149,9 @@ async def predict(
         if not predictions:
             raise HTTPException(status_code=500, detail="No models could be loaded successfully")
 
-        spectrogram_url = f"/static/{spectrogram_path.name}"
-        logging.info("Prediction complete")
+        # CONSTRUIR URL CORRECTA DEL ESPECTROGRAMA
+        spectrogram_url = f"http://localhost:8000/static/{spectrogram_path.name}"
+        logging.info(f"Spectrogram URL: {spectrogram_url}")
 
         response_data = {
             "predictions": {
@@ -157,7 +166,7 @@ async def predict(
             "message": "Predicción completada exitosamente"
         }
         
-        logging.info(f"Returning response: {response_data}")
+        logging.info(f"Returning response with spectrogram: {spectrogram_url}")
         return response_data
 
     except Exception as e:
