@@ -16,9 +16,7 @@ export default function FileSelector({
   const audioRef = useRef(null); 
   const [predictOptions, setPredictOptions] = useState({});
 
-
   useEffect(() => {
-   
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0; 
@@ -32,7 +30,6 @@ export default function FileSelector({
         URL.revokeObjectURL(url);
       };
     } else if (defaultFile) {
-     
       setAudioUrl(`http://localhost:8000/musica/${defaultFile}`);
     } else {
       setAudioUrl(null);
@@ -121,9 +118,10 @@ export default function FileSelector({
         </div>
       )}
       
-      <div className="file-selector__button-container" class="flex justify-center gap-25">
-        <PredictionOptions onOptionsChange={setPredictOptions} />
 
+      <PredictionOptions onOptionsChange={setPredictOptions} />
+
+      <div className="file-selector__button-container">
         <button
           onClick={(e) => onSubmit(e, selectedFile, defaultFile, predictOptions)}
           disabled={loading || (!selectedFile && !defaultFile)}
