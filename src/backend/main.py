@@ -34,6 +34,7 @@ OUTPUT_DIR = Path("static")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=str(OUTPUT_DIR)), name="static")
+app.mount("/musica", StaticFiles(directory=str(MUSIC_DIR)), name="musica")
 
 # Load model names
 model_names = [
@@ -62,6 +63,8 @@ async def get_default_files():
     try:
         files = [f.name for f in MUSIC_DIR.glob("*.wav") if f.is_file()]
         logging.info(f"Found default files: {files}")
+        logging.info(f"Music directory path: {MUSIC_DIR.absolute()}")
+        logging.info(f"Music directory exists: {MUSIC_DIR.exists()}")
         return {"files": files}
     except Exception as e:
         logging.error(f"Error getting default files: {e}")
@@ -93,6 +96,7 @@ async def predict(
         elif default_file:
             audio_path = MUSIC_DIR / default_file
             logging.info(f"Using default file: {audio_path}")
+            logging.info(f"Default file exists: {audio_path.exists()}")
             if not audio_path.exists():
                 logging.error(f"Default file not found: {audio_path}")
                 raise HTTPException(status_code=404, detail=f"Default file not found: {default_file}")
@@ -111,7 +115,6 @@ async def predict(
         logging.info("Generando espectrograma...")
         spectrogram_path = generate_spectrogram(str(audio_path), OUTPUT_DIR)
         logging.info(f"Generated spectrogram: {spectrogram_path}")
-
 
         if not spectrogram_path.exists():
             logging.error(f"Spectrogram not created: {spectrogram_path}")
@@ -173,6 +176,28 @@ async def predict(
         logging.exception("Error during prediction")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/check-music-files")
+async def check_music_files():
+    """Endpoint para debugging - verificar archivos de música disponibles."""
+    try:
+        music_files = []
+        if MUSIC_DIR.exists():
+            for file_path in MUSIC_DIR.glob("*.wav"):
+                music_files.append({
+                    "name": file_path.name,
+                    "path": str(file_path),
+                    "exists": file_path.exists(),
+                    "size": file_path.stat().st_size if file_path.exists() else 0
+                })
+        
+        return {
+            "music_directory": str(MUSIC_DIR.absolute()),
+            "directory_exists": MUSIC_DIR.exists(),
+            "files": music_files
+        }
+    except Exception as e:
+        logging.error(f"Error checking music files: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

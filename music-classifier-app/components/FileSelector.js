@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../styles/FileSelector.css";
 
 export default function FileSelector({ 
@@ -10,6 +10,31 @@ export default function FileSelector({
   onSubmit, 
   loading 
 }) {
+  const [audioUrl, setAudioUrl] = useState(null);
+  const audioRef = useRef(null); 
+
+  useEffect(() => {
+   
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0; 
+    }
+
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setAudioUrl(url);
+      
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else if (defaultFile) {
+     
+      setAudioUrl(`http://localhost:8000/musica/${defaultFile}`);
+    } else {
+      setAudioUrl(null);
+    }
+  }, [selectedFile, defaultFile]);
+
   return (
     <div className="file-selector">
       <div className="file-selector__header">
@@ -39,12 +64,9 @@ export default function FileSelector({
           )}
         </div>
 
-        {/* Divider */}
         <div className="file-selector__divider">
           <div className="file-selector__divider-text">OR</div>
         </div>
-
-        {/* Default Selection */}
         <div className={`file-selector__section ${defaultFile ? 'file-selector__section--valid' : ''}`}>
           <div className="file-selector__icon">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,6 +91,31 @@ export default function FileSelector({
           )}
         </div>
       </div>
+
+      {audioUrl && (
+        <div className="file-selector__audio-player">
+          <div className="file-selector__audio-header">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="file-selector__audio-icon">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M6.343 6.343A8 8 0 1017.657 17.657"/>
+            </svg>
+            <h3 className="file-selector__audio-title">Audio Preview</h3>
+          </div>
+          <audio 
+            ref={audioRef} 
+            controls 
+            preload="metadata"
+            className="file-selector__audio-control"
+          >
+            <source src={audioUrl} type="audio/wav" />
+            <source src={audioUrl} type="audio/mpeg" />
+            <source src={audioUrl} type="audio/mp4" />
+            Your browser does not support the audio element.
+          </audio>
+          <p className="file-selector__audio-info">
+            {selectedFile ? `Playing: ${selectedFile.name}` : `Playing: ${defaultFile}`}
+          </p>
+        </div>
+      )}
       
       <div className="file-selector__button-container">
         <button
