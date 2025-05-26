@@ -39,8 +39,8 @@ app.mount("/musica", StaticFiles(directory=str(MUSIC_DIR)), name="musica")
 # Load model names
 model_names = [
     "knn_original_3_preprocessed.pkl",
-    "svm_actual_3_preprocessed.pkl",
-    "knn_actual_3_preprocessed.pkl"
+    "svm_original_30_preprocessed.pkl",
+    "nn_original_3_preprocessed.pkl"
 ]
 GENRE_MAP = {
     "0": "blues",
