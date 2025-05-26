@@ -83,7 +83,12 @@ def generate_spectrogram(audio_path, output_dir):
     y, sr = librosa.load(audio_path)
     plt.figure(figsize=(10, 4))
     S = librosa.feature.melspectrogram(y=y, sr=sr)
-    librosa.display.specshow(librosa.power_to_db(S, ref=np.max), y_axis='mel', x_axis='time')
+    librosa.display.specshow(
+        librosa.power_to_db(S, ref=np.max),
+        y_axis='mel',
+        x_axis='time',
+        cmap="viridis" 
+    )
     plt.colorbar(format='%+2.0f dB')
     plt.title('Mel-frequency spectrogram')
     plt.tight_layout()
