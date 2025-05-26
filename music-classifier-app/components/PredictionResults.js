@@ -15,6 +15,12 @@ export default function PredictionResults({ predictions }) {
     '#84cc16', 
   ];
 
+  const MODEL_NAME_MAP = {
+    knn_original_3_preprocessed: "KNN",
+    svm_original_3_preprocessed: "SVM",
+    nn_original_3_preprocessed: "Red Neuronal"
+  };
+
   const pieCharts = Object.entries(predictions).map(([model, probs]) => {
     const probEntries = Object.entries(probs);
     const maxProb = Math.max(...Object.values(probs));
@@ -107,7 +113,7 @@ export default function PredictionResults({ predictions }) {
             </div>
             
             <h3 className="prediction-results__card-title">
-              {model}
+              {MODEL_NAME_MAP[model] || model}
             </h3>
             
             <div className="prediction-results__chart-container">

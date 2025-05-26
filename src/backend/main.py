@@ -39,7 +39,7 @@ app.mount("/musica", StaticFiles(directory=str(MUSIC_DIR)), name="musica")
 # Load model names
 model_names = [
     "knn_original_3_preprocessed.pkl",
-    "svm_original_30_preprocessed.pkl",
+    "svm_original_3_preprocessed.pkl",
     "nn_original_3_preprocessed.pkl"
 ]
 GENRE_MAP = {
@@ -140,11 +140,17 @@ async def predict(
 
                 genres = model.classes_ if hasattr(model, 'classes_') else [f"Genre{i}" for i in range(len(avg_probs))]
                 logging.info(f"Géneros: {genres}")
-                
+
+                # Si las clases son números, usa GENRE_MAP; si son strings, úsalas directamente
+                if all(str(g).isdigit() for g in genres):
+                    genre_names = [GENRE_MAP[str(g)] for g in genres]
+                else:
+                    genre_names = [str(g) for g in genres]
+
                 predictions[model_file.stem] = {
-                    int(genre): float(prob) for genre, prob in zip(genres, avg_probs)
+                    genre: float(prob) for genre, prob in zip(genre_names, avg_probs)
                 }
-                
+
             except Exception as model_error:
                 logging.error(f"Error loading model {model_file}: {model_error}")
                 continue
@@ -157,13 +163,7 @@ async def predict(
         logging.info(f"Spectrogram URL: {spectrogram_url}")
 
         response_data = {
-            "predictions": {
-                model_name: {
-                    GENRE_MAP[str(genre)]: float(prob)
-                    for genre, prob in genre_probs.items()
-                }
-                for model_name, genre_probs in predictions.items()
-            },
+            "predictions": predictions,
             "spectrogram": spectrogram_url,
             "num_segments": int(len(df_features)),
             "message": "Predicción completada exitosamente"
