@@ -38,9 +38,30 @@ app.mount("/musica", StaticFiles(directory=str(MUSIC_DIR)), name="musica")
 
 # Load model names
 model_names = [
+    "knn_actual_3_preprocessed.pkl",
+    "knn_actual_3_extracted.pkl",
+    "knn_actual_30_preprocessed.pkl",
+    "knn_actual_30_extracted.pkl",
     "knn_original_3_preprocessed.pkl",
+    "knn_original_3_extracted.pkl",
+    "knn_original_30_preprocessed.pkl",
+    "knn_original_30_extracted.pkl",
+    "nn_actual_3_preprocessed.pkl",
+    "nn_actual_3_extracted.pkl",
+    "nn_actual_30_preprocessed.pkl",
+    "nn_actual_30_extracted.pkl",
+    "nn_original_3_preprocessed.pkl",
+    "nn_original_3_extracted.pkl",
+    "nn_original_30_preprocessed.pkl",
+    "nn_original_30_extracted.pkl",
+    "svm_actual_3_preprocessed.pkl",
+    "svm_actual_3_extracted.pkl",
+    "svm_actual_30_preprocessed.pkl",
+    "svm_actual_30_extracted.pkl",
     "svm_original_3_preprocessed.pkl",
-    "nn_original_3_preprocessed.pkl"
+    "svm_original_3_extracted.pkl",
+    "svm_original_30_preprocessed.pkl",
+    "svm_original_30_extracted.pkl"
 ]
 GENRE_MAP = {
     "0": "blues",
@@ -76,7 +97,11 @@ logging.basicConfig(level=logging.INFO)
 @app.post("/predict")
 async def predict(
     file: UploadFile = File(None), 
-    default_file: str = Form(None)
+    default_file: str = Form(None),
+    mode: str = Form("segment"),  # "segment", "single", "full"
+    segment_duration: float = Form(None),
+    duration: float = Form(30.0),
+    offset: float = Form(None)
 ):
     """Process .wav file in 3-second segments and return aggregated predictions and spectrogram."""
     try:
@@ -108,7 +133,15 @@ async def predict(
         logging.info(f"Processing audio file: {audio_path}")
 
         # Extraer características
-        df_features = extract_features(str(audio_path))
+        if mode == "segment":
+            df_features = extract_features(str(audio_path), segment_duration=3.0)
+        elif mode == "single":
+            df_features = extract_features(str(audio_path), offset=offset, duration=30.0)
+        elif mode == "full":
+            df_features = extract_features(str(audio_path))  # usa todo el audio
+        else:
+            raise HTTPException(status_code=400, detail="Modo inválido. Usa 'segment', 'single' o 'full'")
+
         logging.info(f"DataFrame shape: {df_features.shape}")
 
         # Generar espectrograma
@@ -129,14 +162,32 @@ async def predict(
                 
                 logging.info("Modelo cargado exitosamente")
 
-                segment_probs = []
-                for _, row in df_features.iterrows():
-                    features_array = row.values.reshape(1, -1)
-                    probs = model.predict_proba(features_array)[0]
-                    segment_probs.append(probs)
-                    
-                avg_probs = np.mean(segment_probs, axis=0)
-                logging.info(f"Promedio de Probabilidades: {avg_probs}")
+                segment_genre_predictions = {}
+
+                if len(df_features) == 1:
+                    features_array = df_features.iloc[0].values.reshape(1, -1)
+                    avg_probs = model.predict_proba(features_array)[0]
+                    logging.info(f"Probabilidades: {avg_probs}")
+
+                    top_idx = np.argmax(avg_probs)
+                    top_genre = model.classes_[top_idx]
+                    segment_genres = [str(top_genre)]  # asignación aquí también
+                else:
+                    segment_probs = []
+                    segment_genres = []
+
+                    for _, row in df_features.iterrows():
+                        features_array = row.values.reshape(1, -1)
+                        probs = model.predict_proba(features_array)[0]
+                        segment_probs.append(probs)
+
+                        top_idx = np.argmax(probs)
+                        top_genre = model.classes_[top_idx]
+                        segment_genres.append(str(top_genre))
+
+                    avg_probs = np.mean(segment_probs, axis=0)
+                    logging.info(f"Promedio de Probabilidades: {avg_probs}")
+
 
                 genres = model.classes_ if hasattr(model, 'classes_') else [f"Genre{i}" for i in range(len(avg_probs))]
                 logging.info(f"Géneros: {genres}")
@@ -146,6 +197,15 @@ async def predict(
                     genre_names = [GENRE_MAP[str(g)] for g in genres]
                 else:
                     genre_names = [str(g) for g in genres]
+
+                if all(str(g).isdigit() for g in model.classes_):
+                    segment_genres = [GENRE_MAP.get(g, g) for g in segment_genres]
+                else:
+                    segment_genres = [str(g) for g in segment_genres]
+
+                segment_genre_predictions[model_file.stem] = segment_genres
+
+                segment_genre_predictions[model_file.stem] = segment_genres
 
                 predictions[model_file.stem] = {
                     genre: float(prob) for genre, prob in zip(genre_names, avg_probs)
@@ -164,6 +224,7 @@ async def predict(
 
         response_data = {
             "predictions": predictions,
+            "segment_predictions": segment_genre_predictions,
             "spectrogram": spectrogram_url,
             "num_segments": int(len(df_features)),
             "message": "Predicción completada exitosamente"

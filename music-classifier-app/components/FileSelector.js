@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import PredictionOptions from '../components/PredictionOptions';
+
 import "../styles/FileSelector.css";
 
 export default function FileSelector({ 
@@ -12,6 +14,8 @@ export default function FileSelector({
 }) {
   const [audioUrl, setAudioUrl] = useState(null);
   const audioRef = useRef(null); 
+  const [predictOptions, setPredictOptions] = useState({});
+
 
   useEffect(() => {
    
@@ -117,9 +121,11 @@ export default function FileSelector({
         </div>
       )}
       
-      <div className="file-selector__button-container">
+      <div className="file-selector__button-container" class="flex justify-center gap-25">
+        <PredictionOptions onOptionsChange={setPredictOptions} />
+
         <button
-          onClick={onSubmit}
+          onClick={(e) => onSubmit(e, selectedFile, defaultFile, predictOptions)}
           disabled={loading || (!selectedFile && !defaultFile)}
           className={`file-selector__button ${loading ? 'file-selector__button--loading' : ''}`}
         >

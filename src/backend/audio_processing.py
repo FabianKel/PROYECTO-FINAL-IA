@@ -65,17 +65,30 @@ def extract_important_features(file_path, offset=None, duration=None):
 
     return features
 
-def extract_features(file_path, segment_duration=3.0):
+def extract_features(file_path,  offset=None, duration=None, segment_duration=None):
     """Extrae un DataFrame con una fila por cada segmento del audio."""
     y, sr = librosa.load(file_path, sr=None)
     total_duration = librosa.get_duration(y=y, sr=sr)
 
     features_list = []
-    for start in np.arange(0, total_duration, segment_duration):
-        segment_features = extract_important_features(file_path, offset=start, duration=segment_duration)
-        features_list.append(segment_features)
+    if segment_duration is not None and segment_duration > 0:
+        print(f"Segmenting audio into {segment_duration} seconds segments.")
+        for start in np.arange(0, total_duration, segment_duration):
+            segment_features = extract_important_features(file_path, offset=start, duration=segment_duration)
+            features_list.append(segment_features)
 
-    df = pd.DataFrame(features_list)
+        df = pd.DataFrame(features_list)
+    else:
+        if offset and total_duration - offset > 3.0:
+            print(f"Extracting features from audio with offset {offset} and duration {duration}.")
+            features = extract_important_features(file_path, offset=offset, duration=duration)
+        elif duration and total_duration - duration > 3.0:
+            print(f"Extracting features from 30 seconds from audio file {file_path}.")
+            features = extract_important_features(file_path, offset=None, duration=duration)
+        else:
+            print(f"Extracting features from entire audio file {file_path}.")
+            features = extract_important_features(file_path, offset=None, duration=None)
+        df = pd.DataFrame([features])
     return df
 
 def generate_spectrogram(audio_path, output_dir):
